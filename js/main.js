@@ -56,6 +56,23 @@
   updateMobileLayout();
   window.addEventListener('resize', updateMobileLayout, { passive: true });
 
+  // ── Hide floating WhatsApp on mobile while hero is visible ──
+  const heroSection = document.getElementById('home');
+  if (heroSection) {
+    const heroObserver = new IntersectionObserver(([entry]) => {
+      if (window.innerWidth <= 768) {
+        document.body.classList.toggle('hero-in-view', entry.isIntersecting);
+      } else {
+        document.body.classList.remove('hero-in-view');
+      }
+    }, { threshold: 0.15 });
+
+    heroObserver.observe(heroSection);
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 768) document.body.classList.remove('hero-in-view');
+    }, { passive: true });
+  }
+
   // ── Before / After tab switching ──
   const baTabs = document.querySelectorAll('.ba-tab');
   const baSliders = document.querySelectorAll('.ba-slider');

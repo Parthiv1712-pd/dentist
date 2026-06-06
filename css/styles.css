@@ -349,6 +349,10 @@ address { font-style: normal; }
   margin-bottom: 16px;
 }
 
+.hero__subtitle-short {
+  display: none;
+}
+
 .hero__desc {
   font-size: 1.0625rem;
   opacity: 0.92;
@@ -1163,7 +1167,7 @@ address { font-style: normal; }
   justify-content: center;
   box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
   z-index: 999;
-  transition: var(--transition);
+  transition: transform 0.3s ease, opacity 0.3s ease, bottom 0.3s ease;
   animation: pulse-wa 2s infinite;
 }
 
@@ -1293,70 +1297,105 @@ address { font-style: normal; }
   /* Hero */
   .hero {
     min-height: auto;
-    min-height: 100svh;
-    align-items: flex-end;
+    display: block;
+    padding-top: var(--header-height-mobile);
+    padding-bottom: calc(var(--mobile-bar-height) + 80px + var(--safe-bottom));
   }
 
   .hero__overlay {
     background: linear-gradient(
       180deg,
-      rgba(61, 56, 50, 0.55) 0%,
-      rgba(61, 56, 50, 0.82) 55%,
+      rgba(61, 56, 50, 0.5) 0%,
+      rgba(61, 56, 50, 0.78) 45%,
       rgba(61, 56, 50, 0.92) 100%
     );
   }
 
   .hero__content {
-    padding: 32px 16px 40px;
+    padding: 28px 16px 0;
     max-width: 100%;
   }
 
   .hero__eyebrow {
-    font-size: 0.75rem;
-    margin-bottom: 12px;
+    display: none;
   }
 
   .hero__title {
-    font-size: clamp(1.625rem, 7vw, 2.25rem);
-    margin-bottom: 14px;
+    font-size: clamp(1.5rem, 6.5vw, 1.875rem);
+    line-height: 1.2;
+    margin-bottom: 10px;
   }
 
   .hero__subtitle {
-    font-size: 1rem;
-    margin-bottom: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  .hero__subtitle-full {
+    display: none;
+  }
+
+  .hero__subtitle-short {
+    display: block;
   }
 
   .hero__desc {
-    font-size: 0.9375rem;
-    margin-bottom: 24px;
-    line-height: 1.65;
+    display: none;
   }
 
   .hero__actions {
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
   }
 
   .hero__actions .btn {
     width: 100%;
-    padding: 15px 24px;
+    min-height: 44px;
+    padding: 11px 12px;
+    font-size: 0.8125rem;
+  }
+
+  .hero__actions .btn--whatsapp svg {
+    width: 16px;
+    height: 16px;
   }
 
   .hero__badges {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-wrap: nowrap;
     gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    padding-bottom: 4px;
+    margin: 0 -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    scrollbar-width: none;
+  }
+
+  .hero__badges::-webkit-scrollbar {
+    display: none;
   }
 
   .badge {
+    flex-shrink: 0;
+    scroll-snap-align: start;
     justify-content: flex-start;
-    padding: 10px 12px;
+    padding: 7px 12px;
     font-size: 0.6875rem;
     border-radius: var(--radius-sm);
+    white-space: nowrap;
   }
 
-  .badge__icon { font-size: 0.875rem; }
+  .badge__icon {
+    font-size: 0.8125rem;
+  }
 
   /* Buttons global touch size */
   .btn {
@@ -1604,6 +1643,13 @@ address { font-style: normal; }
     height: 52px;
   }
 
+  /* Hide floating WhatsApp while hero is in view — avoids overlap with badges */
+  body.hero-in-view .float-whatsapp {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.85);
+  }
+
   .float-whatsapp svg { width: 24px; height: 24px; }
 
   /* Section headers */
@@ -1618,7 +1664,30 @@ address { font-style: normal; }
 @media (max-width: 480px) {
   .section { padding: 48px 0; }
 
-  .hero__badges { grid-template-columns: 1fr; }
+  .hero__content {
+    padding-top: 20px;
+  }
+
+  .hero__title {
+    font-size: 1.4375rem;
+  }
+
+  .hero__subtitle-short {
+    font-size: 0.8125rem;
+  }
+
+  .hero__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .hero__actions .btn--whatsapp {
+    display: none;
+  }
+
+  .hero__actions .btn--primary {
+    min-height: 48px;
+    font-size: 0.875rem;
+  }
 
   .achievement-cards { grid-template-columns: 1fr; }
 
