@@ -5,50 +5,62 @@
 (function () {
   'use strict';
 
-  // ── Header scroll effect ──
   const header = document.getElementById('header');
+  const navToggle = document.getElementById('navToggle');
+  const navMenu = document.getElementById('navMenu');
+  const navOverlay = document.getElementById('navOverlay');
+  let scrollPosition = 0;
+
+  // ── Header scroll effect ──
   window.addEventListener('scroll', () => {
     header.classList.toggle('scrolled', window.scrollY > 40);
   }, { passive: true });
 
   // ── Mobile navigation ──
-  const navToggle = document.getElementById('navToggle');
-  const navMenu = document.getElementById('navMenu');
-
   function setNavOpen(open) {
     navMenu.classList.toggle('open', open);
     navToggle.classList.toggle('active', open);
+    navOverlay.classList.toggle('is-visible', open);
     document.body.classList.toggle('nav-open', open);
     navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    navOverlay.setAttribute('aria-hidden', open ? 'false' : 'true');
+
+    if (open) {
+      scrollPosition = window.scrollY;
+      document.body.style.top = `-${scrollPosition}px`;
+    } else {
+      document.body.style.top = '';
+      window.scrollTo(0, scrollPosition);
+    }
   }
 
-  navToggle.setAttribute('aria-expanded', 'false');
-  navToggle.setAttribute('aria-controls', 'navMenu');
+  if (navToggle && navMenu && navOverlay) {
+    navToggle.setAttribute('aria-expanded', 'false');
+    navToggle.setAttribute('aria-controls', 'navMenu');
 
-  navToggle.addEventListener('click', () => {
-    setNavOpen(!navMenu.classList.contains('open'));
-  });
+    navToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setNavOpen(!navMenu.classList.contains('open'));
+    });
 
-  document.querySelectorAll('.nav__link').forEach(link => {
-    link.addEventListener('click', () => setNavOpen(false));
-  });
+    navOverlay.addEventListener('click', () => setNavOpen(false));
 
-  document.addEventListener('click', (e) => {
-    if (!navMenu.classList.contains('open')) return;
-    if (navMenu.contains(e.target) || navToggle.contains(e.target)) return;
-    setNavOpen(false);
-  });
+    document.querySelectorAll('.nav__link').forEach(link => {
+      link.addEventListener('click', () => setNavOpen(false));
+    });
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && navMenu.classList.contains('open')) {
-      setNavOpen(false);
-    }
-  });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && navMenu.classList.contains('open')) {
+        setNavOpen(false);
+      }
+    });
+  }
 
   function updateMobileLayout() {
     const isMobile = window.innerWidth <= 768;
     document.body.classList.toggle('has-mobile-bar', isMobile);
-    if (!isMobile && navMenu.classList.contains('open')) {
+    if (!isMobile && navMenu && navMenu.classList.contains('open')) {
       setNavOpen(false);
     }
   }
@@ -56,22 +68,12 @@
   updateMobileLayout();
   window.addEventListener('resize', updateMobileLayout, { passive: true });
 
-  // ── Hide floating WhatsApp on mobile while hero is visible ──
-  const heroSection = document.getElementById('home');
-  if (heroSection) {
-    const heroObserver = new IntersectionObserver(([entry]) => {
-      if (window.innerWidth <= 768) {
-        document.body.classList.toggle('hero-in-view', entry.isIntersecting);
-      } else {
-        document.body.classList.remove('hero-in-view');
-      }
-    }, { threshold: 0.15 });
-
-    heroObserver.observe(heroSection);
-    window.addEventListener('resize', () => {
-      if (window.innerWidth > 768) document.body.classList.remove('hero-in-view');
-    }, { passive: true });
-  }
+  // Close mobile menu when tapping bottom bar links
+  document.querySelectorAll('.mobile-bar__link[href^="#"]').forEach(link => {
+    link.addEventListener('click', () => {
+      if (navMenu && navMenu.classList.contains('open')) setNavOpen(false);
+    });
+  });
 
   // ── Before / After tab switching ──
   const baTabs = document.querySelectorAll('.ba-tab');
@@ -152,50 +154,54 @@
   // ── Appointment form ──
   const appointmentForm = document.getElementById('appointmentForm');
 
-  appointmentForm.addEventListener('submit', (e) => {
-    e.preventDefault();
+  if (appointmentForm) {
+    appointmentForm.addEventListener('submit', (e) => {
+      e.preventDefault();
 
-    const name = document.getElementById('name').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const treatment = document.getElementById('treatment');
-    const time = document.getElementById('time');
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const treatment = document.getElementById('treatment');
+      const time = document.getElementById('time');
 
-    const treatmentLabel = treatment.options[treatment.selectedIndex].text;
-    const timeLabel = time.options[time.selectedIndex].text;
+      const treatmentLabel = treatment.options[treatment.selectedIndex].text;
+      const timeLabel = time.options[time.selectedIndex].text;
 
-    const message = encodeURIComponent(
-      `Hello! I'd like to book an appointment.\n\n` +
-      `Name: ${name}\n` +
-      `Phone: ${phone}\n` +
-      `Treatment: ${treatmentLabel}\n` +
-      `Preferred Time: ${timeLabel}`
+      const message = encodeURIComponent(
+        `Hello! I'd like to book an appointment.\n\n` +
+        `Name: ${name}\n` +
+        `Phone: ${phone}\n` +
+        `Treatment: ${treatmentLabel}\n` +
+        `Preferred Time: ${timeLabel}`
+      );
+
+      window.open(`https://wa.me/919104853880?text=${message}`, '_blank');
+      appointmentForm.reset();
+    });
+  }
+
+  // ── Scroll reveal (desktop only) ──
+  if (window.innerWidth > 768) {
+    const revealElements = document.querySelectorAll(
+      '.treatment-card, .achievement-card, .review-card, .gallery-item, .tech-card, .affiliation-logo, .ba-slider-wrap'
     );
 
-    window.open(`https://wa.me/919104853880?text=${message}`, '_blank');
-    appointmentForm.reset();
-  });
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
-  // ── Smooth reveal on scroll ──
-  const revealElements = document.querySelectorAll(
-    '.treatment-card, .achievement-card, .review-card, .gallery-item, .tech-card, .affiliation-logo, .ba-slider-wrap'
-  );
-
-  const revealObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.style.opacity = '1';
-        entry.target.style.transform = 'translateY(0)';
-        revealObserver.unobserve(entry.target);
-      }
+    revealElements.forEach((el, i) => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(24px)';
+      el.style.transition = `opacity 0.6s ease ${i % 4 * 0.08}s, transform 0.6s ease ${i % 4 * 0.08}s`;
+      revealObserver.observe(el);
     });
-  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-
-  revealElements.forEach((el, i) => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(24px)';
-    el.style.transition = `opacity 0.6s ease ${i % 4 * 0.08}s, transform 0.6s ease ${i % 4 * 0.08}s`;
-    revealObserver.observe(el);
-  });
+  }
 
   // ── Active nav link on scroll ──
   const sections = document.querySelectorAll('section[id]');
